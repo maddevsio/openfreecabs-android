@@ -2,8 +2,12 @@ package io.maddevs.openfreecabs.presenters;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.util.List;
+
+import io.maddevs.openfreecabs.models.CompanyModel;
 import io.maddevs.openfreecabs.models.response.NearestResponse;
 import io.maddevs.openfreecabs.utils.ApiClient;
+import io.maddevs.openfreecabs.utils.DataStorage;
 import io.maddevs.openfreecabs.utils.LocationManagerHelper;
 import io.maddevs.openfreecabs.views.MainActivity;
 import io.maddevs.openfreecabs.views.interfaces.MainInterface;
@@ -17,6 +21,7 @@ import retrofit2.Response;
 public class MainPresenter implements LocationManagerHelper.HelperLocationListener {
     MainInterface mainInterface;
     LocationManagerHelper locationManagerHelper;
+    public List<CompanyModel> companies;
 
     public MainPresenter(MainActivity mainActivity) {
         mainInterface = mainActivity;
@@ -58,6 +63,7 @@ public class MainPresenter implements LocationManagerHelper.HelperLocationListen
 
     @Override
     public void onLocationChanged(LatLng location) {
+        getNearest(location);
         mainInterface.toMyLocation(location);
     }
 
@@ -67,7 +73,9 @@ public class MainPresenter implements LocationManagerHelper.HelperLocationListen
             public void onResponse(Call<NearestResponse> call, Response<NearestResponse> response) {
                 if (response.isSuccessful()) {
                     if (response.body().success) {
-                        mainInterface.showDrivers(response.body().companies);
+                        companies = response.body().companies;
+                        DataStorage.instance.companies = companies;
+                        mainInterface.showDrivers(companies);
                     }
                 }
             }

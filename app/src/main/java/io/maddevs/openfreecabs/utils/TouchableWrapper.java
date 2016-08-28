@@ -32,7 +32,7 @@ public class TouchableWrapper extends FrameLayout {
     }
 
     public interface OnTouchListener {
-        public void onTouch();
-        public void onRelease();
+        void onTouch();
+        void onRelease();
     }
 }

@@ -1,9 +1,10 @@
 package io.maddevs.openfreecabs.views;
 
+import android.content.Intent;
 import android.os.Handler;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -18,11 +19,12 @@ import io.maddevs.openfreecabs.R;
 import io.maddevs.openfreecabs.models.CompanyModel;
 import io.maddevs.openfreecabs.models.DriverModel;
 import io.maddevs.openfreecabs.presenters.MainPresenter;
+import io.maddevs.openfreecabs.utils.DataStorage;
 import io.maddevs.openfreecabs.utils.TouchableMapFragment;
 import io.maddevs.openfreecabs.utils.TouchableWrapper;
 import io.maddevs.openfreecabs.views.interfaces.MainInterface;
 
-public class MainActivity extends FragmentActivity implements MainInterface, OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements MainInterface, OnMapReadyCallback {
     GoogleMap map;
     LatLng lastTarget;
     Marker lastMarker;
@@ -33,10 +35,10 @@ public class MainActivity extends FragmentActivity implements MainInterface, OnM
     Runnable mapScrollRunnable = new Runnable() {
         @Override
         public void run() {
-            if (!map.getCameraPosition().target.equals(lastTarget)) {
-                lastTarget = map.getCameraPosition().target;
+            if (map.getCameraPosition().target.equals(lastTarget)) {
                 presenter.getNearest(lastTarget);
             } else {
+                lastTarget = map.getCameraPosition().target;
                 mapScrollHandler.postDelayed(this, 100);
             }
         }
@@ -49,11 +51,17 @@ public class MainActivity extends FragmentActivity implements MainInterface, OnM
 
         presenter = new MainPresenter(this);
 
-//        mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-//        mapFragment.getMapAsync(this);
-
         mapFragment = (TouchableMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        findViewById(R.id.mainButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (DataStorage.instance.companies.size() > 0) {
+                    startActivity(new Intent(MainActivity.this, NearCabListActivity.class));
+                }
+            }
+        });
     }
 
     @Override
@@ -80,7 +88,6 @@ public class MainActivity extends FragmentActivity implements MainInterface, OnM
         mapFragment.setTouchListener(new TouchableWrapper.OnTouchListener() {
             @Override
             public void onTouch() {
-                Log.d()
             }
 
             @Override
@@ -95,7 +102,6 @@ public class MainActivity extends FragmentActivity implements MainInterface, OnM
     @Override
     public void toMyLocation(LatLng location) {
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 15));
-        presenter.getNearest(location);
     }
 
     @Override

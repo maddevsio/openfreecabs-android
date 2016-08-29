@@ -25,7 +25,7 @@ public class NearCabsAdapter extends RecyclerView.Adapter<NearCabsAdapter.ViewHo
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         holder.name.setText(DataStorage.instance.companies.get(position).name);
-        holder.count.setText(DataStorage.instance.companies.get(position).drivers.size());
+        holder.count.setText("" + DataStorage.instance.companies.get(position).drivers.size());
     }
 
     @Override

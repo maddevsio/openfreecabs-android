@@ -1,6 +1,8 @@
 package io.maddevs.openfreecabs.views;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -9,9 +11,12 @@ import android.view.View;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.util.List;
 
@@ -107,12 +112,32 @@ public class MainActivity extends AppCompatActivity implements MainInterface, On
     @Override
     public void showDrivers(List<CompanyModel> companies) {
         map.clear();
-        for (CompanyModel company : companies) {
-            for (DriverModel driver : company.drivers) {
-                map.addMarker(new MarkerOptions()
-                        .position(new LatLng(driver.latitude, driver.longitude))
-                        .title(company.name));
-            }
+        for (final CompanyModel company : companies) {
+            Picasso.with(this)
+                    .load("http://icons.iconarchive.com/icons/icons-land/vista-map-markers/256/Map-Marker-Ball-Azure-icon.png")
+                    .into(new Target() {
+                        @Override
+                        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+
+                            for (DriverModel driver : company.drivers) {
+                                map.addMarker(new MarkerOptions()
+                                                .position(new LatLng(driver.latitude, driver.longitude))
+                                                .title(company.name)
+                                                .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
+                                );
+                            }
+                        }
+
+                        @Override
+                        public void onBitmapFailed(Drawable errorDrawable) {
+
+                        }
+
+                        @Override
+                        public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+                        }
+                    });
         }
     }
 }

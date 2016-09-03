@@ -7,5 +7,7 @@ import java.util.List;
  */
 public class CompanyModel {
     public String name;
+    public String icon;
+    public List<ContactModel> contacts;
     public List<DriverModel> drivers;
 }

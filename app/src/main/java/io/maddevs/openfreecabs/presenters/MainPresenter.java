@@ -72,7 +72,7 @@ public class MainPresenter implements LocationManagerHelper.HelperLocationListen
             @Override
             public void onResponse(Call<NearestResponse> call, Response<NearestResponse> response) {
                 if (response.isSuccessful()) {
-                    if (response.body().success) {
+                    if (response.body().success && response.body().companies != null) {
                         companies = response.body().companies;
                         DataStorage.instance.companies = companies;
                         mainInterface.showDrivers(companies);

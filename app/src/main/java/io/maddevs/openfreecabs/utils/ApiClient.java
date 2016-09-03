@@ -14,7 +14,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by rustam on 22.08.16.
  */
 public class ApiClient {
-    private static final String baseUrl = "https://eb6e911e.ngrok.io/";
+    private static final String baseUrl = "http://openfreecabs.org/";
     public static ApiClient instance = new ApiClient();
 
     private Retrofit retrofit;

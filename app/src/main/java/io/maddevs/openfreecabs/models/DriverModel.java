@@ -11,6 +11,4 @@ public class DriverModel {
 
     @SerializedName("lon")
     public double longitude;
-
-    public String name;
 }

@@ -11,6 +11,7 @@ import android.view.View;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -18,12 +19,14 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.maddevs.openfreecabs.R;
 import io.maddevs.openfreecabs.models.CompanyModel;
 import io.maddevs.openfreecabs.models.DriverModel;
 import io.maddevs.openfreecabs.presenters.MainPresenter;
+import io.maddevs.openfreecabs.utils.BitmapUtils;
 import io.maddevs.openfreecabs.utils.DataStorage;
 import io.maddevs.openfreecabs.utils.TouchableMapFragment;
 import io.maddevs.openfreecabs.utils.TouchableWrapper;
@@ -31,13 +34,16 @@ import io.maddevs.openfreecabs.views.interfaces.MainInterface;
 
 public class MainActivity extends AppCompatActivity implements MainInterface, OnMapReadyCallback {
     GoogleMap map;
-    LatLng lastTarget;
-    Marker lastMarker;
+    List<Marker> driverMarkers = new ArrayList<>();
+
     MainPresenter presenter;
     TouchableMapFragment mapFragment;
+    View mainButton;
 
     Handler mapScrollHandler = new Handler();
     Runnable mapScrollRunnable = new Runnable() {
+        LatLng lastTarget;
+
         @Override
         public void run() {
             if (map.getCameraPosition().target.equals(lastTarget)) {
@@ -54,12 +60,20 @@ public class MainActivity extends AppCompatActivity implements MainInterface, On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setLogo(R.drawable.logo);
+            getSupportActionBar().setDisplayUseLogoEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setDisplayShowTitleEnabled(true);
+        }
+
         presenter = new MainPresenter(this);
 
         mapFragment = (TouchableMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        findViewById(R.id.mainButton).setOnClickListener(new View.OnClickListener() {
+        mainButton = findViewById(R.id.mainButton);
+        mainButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (DataStorage.instance.companies.size() > 0) {
@@ -73,6 +87,8 @@ public class MainActivity extends AppCompatActivity implements MainInterface, On
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
         map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            Marker lastMarker;
+
             @Override
             public boolean onMarkerClick(Marker marker) {
                 if (lastMarker != null) {
@@ -97,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements MainInterface, On
 
             @Override
             public void onRelease() {
+                mapScrollHandler.removeCallbacks(mapScrollRunnable);
                 mapScrollHandler.postDelayed(mapScrollRunnable, 100);
             }
         });
@@ -111,33 +128,51 @@ public class MainActivity extends AppCompatActivity implements MainInterface, On
 
     @Override
     public void showDrivers(List<CompanyModel> companies) {
-        map.clear();
+        for (Marker driverMarker : driverMarkers) {
+            driverMarker.remove();
+        }
+        driverMarkers.clear();
+
         for (final CompanyModel company : companies) {
             Picasso.with(this)
-                    .load("http://icons.iconarchive.com/icons/icons-land/vista-map-markers/256/Map-Marker-Ball-Azure-icon.png")
+                    .load(company.icon)
                     .into(new Target() {
                         @Override
                         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-
-                            for (DriverModel driver : company.drivers) {
-                                map.addMarker(new MarkerOptions()
-                                                .position(new LatLng(driver.latitude, driver.longitude))
-                                                .title(company.name)
-                                                .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
-                                );
-                            }
+                            drawMarkers(company, BitmapDescriptorFactory.fromBitmap(
+                                    BitmapUtils.scaleBitmap(
+                                            bitmap,
+                                            BitmapUtils.dp2px(MainActivity.this, 24),
+                                            BitmapUtils.dp2px(MainActivity.this, 24),
+                                            BitmapUtils.AspectFill
+                                    )));
                         }
 
                         @Override
                         public void onBitmapFailed(Drawable errorDrawable) {
-
+                            drawMarkers(company, BitmapDescriptorFactory.fromResource(R.drawable.ic_default_marker));
                         }
 
                         @Override
                         public void onPrepareLoad(Drawable placeHolderDrawable) {
-
+                            drawMarkers(company, BitmapDescriptorFactory.fromResource(R.drawable.ic_default_marker));
                         }
                     });
+        }
+    }
+
+    private void drawMarkers(CompanyModel company, BitmapDescriptor bitmapDescriptor) {
+        for (Marker driverMarker : driverMarkers) {
+            if (driverMarker.getTitle().equals(company.name)) {
+                driverMarker.remove();
+            }
+        }
+        for (DriverModel driver : company.drivers) {
+            driverMarkers.add(map.addMarker(new MarkerOptions()
+                    .position(new LatLng(driver.latitude, driver.longitude))
+                    .title(company.name)
+                    .icon(bitmapDescriptor)
+            ));
         }
     }
 }

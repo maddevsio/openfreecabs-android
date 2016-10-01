@@ -2,6 +2,8 @@ package io.maddevs.openfreecabs.presenters;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import io.maddevs.openfreecabs.models.CompanyModel;
@@ -26,9 +28,15 @@ public class MainPresenter implements LocationManagerHelper.HelperLocationListen
     public MainPresenter(MainActivity mainActivity) {
         mainInterface = mainActivity;
         locationManagerHelper = new LocationManagerHelper(mainActivity, this);
+        companies = DataStorage.instance.companies;
     }
 
     public void onMapReady() {
+        if (companies != null && companies.size() > 0) {
+            DataStorage.instance.companies = companies;
+            mainInterface.showDrivers(companies);
+        }
+
         locationManagerHelper.requestUpdate();
         switch (locationManagerHelper.requestUpdate()) {
             case NoAvailableProviders:
@@ -74,6 +82,18 @@ public class MainPresenter implements LocationManagerHelper.HelperLocationListen
                 if (response.isSuccessful()) {
                     if (response.body().success && response.body().companies != null) {
                         companies = response.body().companies;
+                        Collections.sort(companies, new Comparator<Object>() {
+                            @Override
+                            public int compare(Object lhs, Object rhs) {
+                                if (((CompanyModel) lhs).drivers.size() > ((CompanyModel) rhs).drivers.size()) {
+                                    return -1;
+                                } else if (((CompanyModel) lhs).drivers.size() < ((CompanyModel) rhs).drivers.size()) {
+                                    return 1;
+                                } else {
+                                    return 0;
+                                }
+                            }
+                        });
                         DataStorage.instance.companies = companies;
                         mainInterface.showDrivers(companies);
                     }

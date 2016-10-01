@@ -1,24 +1,24 @@
 package io.maddevs.openfreecabs.views;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import io.maddevs.openfreecabs.R;
-import io.maddevs.openfreecabs.adapters.NearCabsAdapter;
-import io.maddevs.openfreecabs.models.CompanyModel;
-import io.maddevs.openfreecabs.utils.DataStorage;
+import io.maddevs.openfreecabs.adapters.ContactsAdapter;
+import io.maddevs.openfreecabs.models.ContactModel;
 import io.maddevs.openfreecabs.utils.views.DividerItemDecoration;
 
 /**
- * Created by rustam on 28.08.16.
+ * Created by man on 01.10.16.
  */
-public class NearCabListActivity extends AppCompatActivity implements NearCabsAdapter.OnItemClickListener {
+public class ContactsActivity extends AppCompatActivity implements ContactsAdapter.OnItemClickListener {
+    String title;
     RecyclerView recyclerView;
 
     @Override
@@ -26,28 +26,44 @@ public class NearCabListActivity extends AppCompatActivity implements NearCabsAd
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_list);
 
+        if (getIntent().getExtras() != null) {
+            title = getIntent().getExtras().getString("companyName", "");
+        }
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayShowTitleEnabled(true);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setHomeButtonEnabled(true);
+            getSupportActionBar().setTitle(!title.isEmpty() ? title : getString(R.string.app_name));
         }
 
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.addItemDecoration(new DividerItemDecoration(ContextCompat.getDrawable(this, R.drawable.divider)));
-        recyclerView.setAdapter(new NearCabsAdapter(this));
+        recyclerView.setAdapter(new ContactsAdapter(this));
     }
 
     @Override
-    public void onClick(CompanyModel item) {
-        if (item.contacts != null && item.contacts.size() > 0) {
-            DataStorage.instance.selectedCompanyContacts = item.contacts;
-            Intent intent = new Intent(this, ContactsActivity.class);
-            intent.putExtra("companyName", item.name);
-            startActivity(intent);
-        } else {
-            Toast.makeText(this, R.string.no_contacts, Toast.LENGTH_SHORT).show();
+    public void onClick(ContactModel item) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        switch (item.type) {
+            case ContactModel.Sms:
+                intent.setData(Uri.parse("sms:" + item.contact));
+                break;
+            case ContactModel.Phone:
+                intent.setData(Uri.parse("tel:" + item.contact));
+                break;
+            case ContactModel.Website:
+                intent.setData(Uri.parse(item.contact));
+                break;
+            case ContactModel.Android:
+                intent.setData(Uri.parse(item.contact));
+                break;
+            case ContactModel.Apple:
+                intent.setData(Uri.parse(item.contact));
+                break;
         }
+        startActivity(intent);
     }
 
     @Override

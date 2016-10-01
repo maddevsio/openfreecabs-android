@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Open Free Cabs</string>
+
+    <string name="address">Your address</string>
+    <string name="main_button">For a taxi call?</string>
+    <string name="free_cabs">Free cabs</string>
+    <string name="no_contacts">Contacts not found</string>
 </resources>

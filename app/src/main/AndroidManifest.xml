@@ -27,6 +27,8 @@
 
         <activity android:name=".views.NearCabListActivity"/>
 
+        <activity android:name=".views.ContactsActivity"/>
+
     </application>
 
 </manifest>
